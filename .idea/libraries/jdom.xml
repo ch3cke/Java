@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="jdom">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Desktop/jdom.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/commons-logging-1.1.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/commons-collections-3.2.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/ezmorph-1.0.4.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/commons-beanutils-1.7.0.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/commons-lang-2.4.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/json-lib-2.2.2-jdk15.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/json-lib-2.4-jdk15.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

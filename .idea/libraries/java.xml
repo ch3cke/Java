@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="java">
+    <CLASSES />
+    <JAVADOC>
+      <root url="https://oss.sonatype.org/content/repositories/snapshots/com/loopj/android/android-async-http/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$USER_HOME$/Desktop/java" />
+    </SOURCES>
+  </library>
+</component>
