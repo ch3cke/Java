@@ -1,5 +1,6 @@
 package Servre;
 
+import FileTransfer.FileSender;
 import JsonConvert.JsonConvert;
 import net.sf.json.JSONObject;
 import org.java_websocket.WebSocket;
@@ -44,10 +45,12 @@ public class Server extends WebSocketServer {
         }
     }
 
-    /*在配置文件中找到打开的端口*/
-    public static int getConfig() {
+    /*
+    在配置文件中找到打开的端口
+    */
+    private static int getConfig() {
         File file = new File("Server_config.json");
-        JSONObject Config = new JSONObject();
+        JSONObject Config;
         if (file.exists()) {
             Config = JsonConvert.readConf("Server_config.json");
             return Config.getInt("Port");
@@ -70,12 +73,22 @@ public class Server extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         System.out.println(conn + ": " + message);
+        if (message.equals("download")) {
+            FileSender s = null;
+            try {
+                s = new FileSender();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            s.service();
+        }
         conn.send("sss");
     }
 
     @Override
     public void onMessage(WebSocket conn, ByteBuffer message) {
         System.out.println(conn + ": " + message);
+
     }
 
     @Override

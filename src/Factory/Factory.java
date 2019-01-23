@@ -1,38 +1,49 @@
 package Factory;
 
-import com.github.kevinsawicki.http.HttpRequest;
+import FileTransfer.FileReceive;
+import JsonConvert.JsonConvert;
+import com.arronlong.httpclientutil.common.HttpHeader;
 import net.sf.json.JSONObject;
+import org.apache.http.Header;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.Thread.sleep;
 
 public class Factory {
-    public myMethods getConnect(JSONObject str) throws URISyntaxException, MalformedURLException {
+    public myMethods getConnect(JSONObject str) throws URISyntaxException {
         String mode = str.getString("mode");
         URI sockURI = new URI("ws://" + str.getString("host") + ":" + str.getString("port"));
-        URL httpURL = new URL("http://" + str.getString("host") + ":" + str.getString("port"));
-        if (mode.equals("Socket") || mode.equals("socket")) {
-            return new Socket(sockURI);
-        } else if (mode.equals("http") || mode.equals("Http")) {
-            return new Http(httpURL);
-        } else {
-            return new Http(httpURL);
+        String httpURL = "http://" + str.getString("host") + ":" + str.getString("port");
+        switch (mode) {
+            case "Socket":
+            case "socket":
+                return new mySocket(sockURI);
+            case "http":
+            case "Http":
+                return new myHttp(httpURL);
+            default:
+                return new mySocket(sockURI);
         }
     }
 }
 
-class Socket extends WebSocketClient implements myMethods {
+class mySocket extends WebSocketClient implements myMethods {
     private String mess = null;
     private int flag = 0;
 
-    public Socket(URI serverUri) {
+    public mySocket(URI serverUri) {
         super(serverUri);
     }
 
@@ -59,9 +70,12 @@ class Socket extends WebSocketClient implements myMethods {
     }
 
     public String getMess() {
+        String info;//传出得到的信息
         while (true) {
             if (flag == 1) {
-                return mess;
+                info = mess;
+                this.setMess();
+                return info;
             } else {
                 try {
                     sleep(1);
@@ -72,13 +86,14 @@ class Socket extends WebSocketClient implements myMethods {
         }
     }
 
-    public void setMess() {
+    private void setMess() {
         mess = null;
         flag = 0;
     }
 
-    public void sendInfo(String info) {
-        this.send(info);
+    public String sendInfo(JSONObject info) {
+        this.send(info.toString());
+        return getMess();
     }
 
     public void myConnect() {
@@ -89,28 +104,68 @@ class Socket extends WebSocketClient implements myMethods {
         this.close();
     }
 
+    /*
+    远程文件下载
+     */
+    public void getFile(String fileName) throws Exception {
+        Socket conn = this.getSocket();
+        OutputStream fileNam = conn.getOutputStream();
+        this.send("download");
+        FileReceive d = new FileReceive();//file为下载文件所在的文件夹
+        d.service();
+    }
+
 }
 
-class Http extends HttpRequest implements myMethods {
+class myHttp implements myMethods {
+    private static ArrayList<String> fileList = new ArrayList<String>();
+    private String url = null;
 
-    public Http(CharSequence url) throws HttpRequestException {
-        super(url, "GET");
+    /**
+     * http的头文件，可以自己定义
+     */
+    public myHttp(String httpUrl) {
+        this.url = httpUrl;
     }
 
-    public Http(URL url) throws HttpRequestException {
-        super(url, "GET");
+    @Override
+    public String sendInfo(JSONObject info) throws com.arronlong.httpclientutil.exception.HttpProcessException {
+        Map<String, Object> map = new HashMap<>();
+        com.arronlong.httpclientutil.common.HttpConfig config = com.arronlong.httpclientutil.common.HttpConfig.custom();
+        HttpHeader.Headers[] headers = (HttpHeader.Headers[]) HttpHeader.custom().userAgent("Mozilla/5.0").build();
+        config.headers((Header[]) headers);
+        return com.arronlong.httpclientutil.HttpClientUtil.post(config);
     }
 
-    public void sendInfo(String info) {
-        this.send(info.getBytes());
-    }
-
+    @Override
     public void myConnect() {
-        this.getConnection();
+
     }
 
-    public void myClose() throws IOException {
-        this.closeOutput();
+    @Override
+    public void myClose() {
+
     }
+
+
+    @Override
+    public void getFile(String fileName) throws FileNotFoundException, com.arronlong.httpclientutil.exception.HttpProcessException {
+        JSONObject conf = new JSONObject();
+        conf = JsonConvert.readConf("config.json");
+        String file = conf.getString("file").replace(" ", "");
+        String[] files = file.split(",");
+        for (String fi : files) {
+            System.out.println(fi);
+            String Url = this.url + "/" + fi;
+            System.out.println(Url);
+            File doc = new File("e:/" + fi);
+            com.arronlong.httpclientutil.HttpClientUtil.down(com.arronlong.httpclientutil.common.HttpConfig.custom().url(Url).out(new FileOutputStream(doc)));
+            if (doc.exists()) {
+                System.out.println("图片下载成功了！存放在：" + doc.getPath());
+            }
+        }
+
+    }
+
+
 }
-
