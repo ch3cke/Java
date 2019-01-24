@@ -107,7 +107,7 @@ class mySocket extends WebSocketClient implements myMethods {
     /*
     远程文件下载
      */
-    public void getFile(String fileName) throws Exception {
+    public void getFile(String filePath) throws Exception {
         Socket conn = this.getSocket();
         OutputStream fileNam = conn.getOutputStream();
         this.send("download");
